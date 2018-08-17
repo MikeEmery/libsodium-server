@@ -1,0 +1,115 @@
+syntax = "proto3";
+
+package sodium;
+
+enum Error {
+  ERROR_UNKNOWN = 0;
+  ERROR_OPERATION_FAILED = 1;
+}
+
+message KeyPair {
+  bytes publicKey = 1;
+  bytes secretKey = 2;
+}
+
+message SignKeyPairGenerateRequest {
+}
+
+message SignKeyPairGenerateResponse {
+  KeyPair keyPair = 1;
+  Error error = 2;
+}
+
+message BoxKeyPairGenerateRequest {
+  int32 foo = 1;
+}
+
+message BoxKeyPairGenerateResponse {
+  KeyPair keyPair = 1;
+}
+
+message SignDetatchedRequest {
+  bytes message = 1;
+  bytes secretKey = 2;
+}
+
+message SignDetachedResponse {
+  bytes digest = 1;
+}
+
+message SignDetatchedVerifyRequest {
+  bytes message = 1;
+  bytes publicKey = 2;
+  bytes signature = 3;
+}
+
+message SignDetatchedVerifyResponse {
+  bool signatureMatches = 1;
+}
+
+message BoxEasyRequest {
+  bytes plaintext = 1;
+  bytes publicKey = 2;
+  bytes secretKey = 3;
+}
+
+message BoxEasyResponse {
+  bytes ciphertext = 1;
+  bytes nonce = 2;
+}
+
+message BoxEasyOpenRequest {
+  bytes ciphertext = 1;
+  bytes nonce = 2;
+  bytes publicKey = 3;
+  bytes secretKey = 4;
+}
+
+message BoxEasyOpenResponse {
+  bytes plaintext = 1;
+}
+
+message BoxSealRequest {
+  bytes plaintext = 1;
+  bytes publicKey = 2;
+}
+
+message BoxSealResponse {
+  bytes ciphertext = 1;
+}
+
+message BoxSealOpenRequest {
+  bytes ciphertext = 1;
+  KeyPair keypair = 2;
+}
+
+message BoxSealOpenResponse {
+  bytes plaintext = 1;
+}
+
+message Request {
+  oneof sodium_operation {
+    SignKeyPairGenerateRequest signKeyPairGenerateRequest = 1;
+    BoxKeyPairGenerateRequest boxKeyPairGenerateRequest = 2;
+    SignDetatchedRequest signDetachedRequest = 3;
+    SignDetatchedVerifyRequest signDetachedVerifyRequest = 4;
+    BoxEasyRequest boxEasyRequest = 5;
+    BoxEasyOpenRequest boxEasyOpenRequest = 6;
+    BoxSealRequest boxSealRequest = 7;
+    BoxSealOpenRequest boxSealOpenRequest = 8;
+  }
+}
+
+message Response {
+  oneof sodium_result {
+    Error error = 1;
+    SignKeyPairGenerateResponse signKeyPairGenerateResponse = 2;
+    BoxKeyPairGenerateResponse boxKeyPairGenerateResponse = 3;
+    SignDetachedResponse signDetachedResponse = 4;
+    SignDetatchedVerifyResponse signDetachedVerifyResponse = 5;
+    BoxEasyResponse boxEasyResponse = 6;
+    BoxEasyOpenResponse boxEasyOpenRespose = 7;
+    BoxSealResponse boxSealResponse = 8;
+    BoxSealOpenResponse boxSealOpenResponse = 9;
+  }
+}
