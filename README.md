@@ -2,8 +2,8 @@
 
 ## What is it?
 
-It's a golang executable that communicates over `stdin`/`stdout` with a protobuf defined message
-format.
+It's a golang program that communicates over `stdin`/`stdout` with a protobuf defined message
+format and exposes libsodium operations for sealed boxes and digital signatures.
 
 ## But... why?
 
