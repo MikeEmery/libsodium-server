@@ -21,7 +21,6 @@ message SignKeyPairGenerateResponse {
 }
 
 message BoxKeyPairGenerateRequest {
-  int32 foo = 1;
 }
 
 message BoxKeyPairGenerateResponse {

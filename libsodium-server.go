@@ -80,18 +80,44 @@ func main() {
 		}
 
 		wireResponse := handleRequest(request)
-		writeResponse(writer, wireResponse)
+
+		err = writeResponse(writer, wireResponse)
+
+		if err != nil {
+			log.Printf("Failed to write response %v", err)
+		}
 	}
 }
 
 func writeResponse(writer *bufio.Writer, response *sodium.Response) error {
-	buf, _ := proto.Marshal(response)
+	buf, err := proto.Marshal(response)
+
+	if err != nil {
+		return err
+	}
+
 	outHeader := make([]byte, 4)
 	binary.BigEndian.PutUint32(outHeader, uint32(len(buf)))
 
-	writer.Write(outHeader)
-	writer.Write(buf)
-	writer.Flush()
+	_, err = writer.Write(outHeader)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = writer.Write(buf)
+
+	if err != nil {
+		return err
+	}
+
+	err = writer.Flush()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func handleRequest(request *sodium.Request) *sodium.Response {
@@ -112,7 +138,7 @@ func handleRequest(request *sodium.Request) *sodium.Response {
 			op.BoxEasyOpenRequest.PublicKey,
 			op.BoxEasyOpenRequest.SecretKey)
 	case *sodium.Request_BoxKeyPairGenerateRequest:
-		log.Printf("BoxKeyPairGenerateRequest %d", op.BoxKeyPairGenerateRequest.Foo)
+		log.Printf("BoxKeyPairGenerateRequest")
 		wireResponse = generateBoxKeyPair()
 	case *sodium.Request_BoxSealOpenRequest:
 		log.Printf("BoxSealOpenRequest")
