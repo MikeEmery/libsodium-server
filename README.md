@@ -13,5 +13,5 @@ libsodium, but I could spawn child processes.
 ## Using it
 
 1. Compile your own version of libsodium (you shouldn't trust me to do something like that)
-1. copy your `.so`/`.dylib`/`.dll` file to the project root directory
+1. copy your platform `libsodium.a` file to the project root directory
 1. `go run libsodium-server`

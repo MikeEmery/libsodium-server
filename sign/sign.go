@@ -1,7 +1,8 @@
 package sign
 
 /*
-#cgo LDFLAGS: -L. -lsodium
+#cgo CFLAGS: -I..
+#cgo LDFLAGS: -L.. -lsodium
 #include <sodium.h>
 */
 import "C"
