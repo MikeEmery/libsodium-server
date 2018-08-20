@@ -15,7 +15,7 @@ type PublicKey []byte
 type SecretKey []byte
 type Digest []byte
 
-var preconditionError error = errors.New("Precondition failed")
+var preconditionError error = errors.New("precondition failed")
 
 type Error struct {
 	errorCode int
@@ -67,14 +67,10 @@ func GenerateKeyPair() (KeyPair, error) {
 	return NewKeyPair(pk, sk), err
 }
 
-/*
-SODIUM_EXPORT
-int crypto_sign_detached(unsigned char *sig, unsigned long long *siglen_p,
-                         const unsigned char *m, unsigned long long mlen,
-                         const unsigned char *sk);
- */
 func Detached(m []byte, sk SecretKey) (Digest, error) {
 	if len(sk) != int(C.crypto_sign_secretkeybytes()) {
+		return nil, preconditionError
+	} else if len(m) <= 0 {
 		return nil, preconditionError
 	}
 
@@ -92,14 +88,12 @@ func Detached(m []byte, sk SecretKey) (Digest, error) {
 	return sig, err
 }
 
-/*
-int crypto_sign_verify_detached(const unsigned char *sig,
-                                const unsigned char *m,
-                                unsigned long long mlen,
-                                const unsigned char *pk)
- */
 func Verify(m []byte, d Digest, pk PublicKey) (bool, error) {
 	if len(pk) != int(C.crypto_sign_publickeybytes()) {
+		return false, preconditionError
+	} else if len(m) <= 0 {
+		return false, preconditionError
+	} else if len(d) <= 0 {
 		return false, preconditionError
 	}
 

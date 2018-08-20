@@ -17,7 +17,7 @@ type SecretKey []byte
 type Ciphertext []byte
 type Nonce []byte
 
-var preconditionError error = errors.New("Precondition failed")
+var preconditionError error = errors.New("precondition failed")
 
 type Error struct {
 	errorCode int
@@ -76,6 +76,10 @@ func GenerateKeyPair() (KeyPair, error) {
 func Seal(msg []byte, key PublicKey) (Ciphertext, error) {
 	if len(key) != int(C.crypto_box_publickeybytes()) {
 		return nil, preconditionError
+	} else if len(msg) <= 0 {
+		return nil, preconditionError
+	} else if len(msg) <= 0 {
+		return nil, preconditionError
 	}
 
 	mlen := len(msg)
@@ -99,6 +103,8 @@ func SealOpen(c Ciphertext, pair KeyPair) ([]byte, error) {
 	if len(pair.PublicKey) != int(C.crypto_box_publickeybytes()) {
 		return nil, preconditionError
 	} else if len(pair.SecretKey) != int(C.crypto_box_secretkeybytes()) {
+		return nil, preconditionError
+	} else if mlen <= 0 {
 		return nil, preconditionError
 	}
 
@@ -125,6 +131,8 @@ func Easy(msg []byte, sender SecretKey, receiver PublicKey) (*easyResult, error)
 	if len(sender) != int(C.crypto_box_publickeybytes()) {
 		return nil, preconditionError
 	} else if len(receiver) != int(C.crypto_box_secretkeybytes()) {
+		return nil, preconditionError
+	} else if len(msg) <= 0 {
 		return nil, preconditionError
 	}
 
@@ -154,6 +162,8 @@ func EasyOpen(r *easyResult, sender PublicKey, receiver SecretKey) ([]byte, erro
 	} else if len(sender) != int(C.crypto_box_publickeybytes()) {
 		return nil, preconditionError
 	} else if len(receiver) != int(C.crypto_box_secretkeybytes()) {
+		return nil, preconditionError
+	} else if mlen <= 0 {
 		return nil, preconditionError
 	}
 
