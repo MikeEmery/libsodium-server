@@ -73,7 +73,6 @@ func readIncomingRequest(reader io.Reader, header []byte, bodyBuf []byte) (*sodi
 	}
 
 	size := int(binary.BigEndian.Uint32(header))
-	log.Printf("Request size=%v", size)
 
 	if size > MAX_BODY_SIZE {
 		return nil, invalidRequestError
@@ -81,8 +80,6 @@ func readIncomingRequest(reader io.Reader, header []byte, bodyBuf []byte) (*sodi
 
 	reqBody := bodyBuf[:size]
 	count, err = accumulate(reader, reqBody, size, 0)
-
-	log.Printf("Bytes read=%v", count)
 
 	if err != nil {
 		return nil, err
@@ -92,6 +89,14 @@ func readIncomingRequest(reader io.Reader, header []byte, bodyBuf []byte) (*sodi
 
 	var request = &sodium.Request{}
 	err = proto.Unmarshal(reqBody, request)
+
+	for i := range header {
+		header[i] = 0
+	}
+
+	for i := range reqBody {
+		reqBody[i] = 0
+	}
 
 	return request, err
 }
@@ -120,10 +125,7 @@ func readFromStdIn() {
 			log.Printf("Error %v", err)
 			wireResponse = buildSodiumResponseError(err, sodium.Error_ERROR_READ_REQUEST_FAILED)
 		} else {
-			t1 := time.Now()
 			wireResponse = handleRequest(request)
-			t2 := time.Now()
-			log.Printf("operation time=%f.1 ms", t2.Sub(t1).Seconds()*1000)
 		}
 
 		err = writeResponse(writer, wireResponse)
@@ -162,48 +164,64 @@ func writeResponse(writer io.Writer, response *sodium.Response) error {
 func handleRequest(request *sodium.Request) *sodium.Response {
 	var wireResponse *sodium.Response
 
+	operationName := "unknown"
+
+	t1 := time.Now()
+
 	switch op := request.SodiumOperation.(type) {
 	case *sodium.Request_BoxEasyRequest:
-		log.Printf("BoxEasyRequest")
+		operationName = proto.MessageName(op.BoxEasyRequest)
+
 		wireResponse = encryptBoxEasy(
 			op.BoxEasyRequest.Plaintext,
 			op.BoxEasyRequest.SecretKey,
 			op.BoxEasyRequest.PublicKey)
 	case *sodium.Request_BoxEasyOpenRequest:
-		log.Printf("BoxEasyOpenRequest")
+		operationName = proto.MessageName(op.BoxEasyOpenRequest)
+
 		wireResponse = decryptBoxEasy(
 			op.BoxEasyOpenRequest.Ciphertext,
 			op.BoxEasyOpenRequest.Nonce,
 			op.BoxEasyOpenRequest.PublicKey,
 			op.BoxEasyOpenRequest.SecretKey)
 	case *sodium.Request_BoxKeyPairGenerateRequest:
-		log.Printf("BoxKeyPairGenerateRequest")
+		operationName = proto.MessageName(op.BoxKeyPairGenerateRequest)
+
 		wireResponse = generateBoxKeyPair()
 	case *sodium.Request_BoxSealOpenRequest:
-		log.Printf("BoxSealOpenRequest")
+		operationName = proto.MessageName(op.BoxSealOpenRequest)
+
 		wireResponse = decryptBoxSeal(
 			op.BoxSealOpenRequest.Ciphertext,
 			box.NewKeyPair(
 				op.BoxSealOpenRequest.Keypair.PublicKey,
 				op.BoxSealOpenRequest.Keypair.SecretKey))
 	case *sodium.Request_BoxSealRequest:
-		log.Printf("BoxSealRequest")
+		operationName = proto.MessageName(op.BoxSealRequest)
+
 		wireResponse = encryptBoxSeal(op.BoxSealRequest.Plaintext, op.BoxSealRequest.PublicKey)
 	case *sodium.Request_SignDetachedRequest:
-		log.Printf("SignedDetachedRequest")
+		operationName = proto.MessageName(op.SignDetachedRequest)
+
 		wireResponse = signDetached(op.SignDetachedRequest.Message, op.SignDetachedRequest.SecretKey)
 	case *sodium.Request_SignDetachedVerifyRequest:
-		log.Printf("SignDetachedVerifyRequest")
+		operationName = proto.MessageName(op.SignDetachedVerifyRequest)
+
 		wireResponse = signDetachedVerify(
 			op.SignDetachedVerifyRequest.Message,
 			op.SignDetachedVerifyRequest.PublicKey,
 			op.SignDetachedVerifyRequest.Signature)
 	case *sodium.Request_SignKeyPairGenerateRequest:
-		log.Printf("SignKeyPairGenerateRequest")
+		operationName = proto.MessageName(op.SignKeyPairGenerateRequest)
+
 		wireResponse = generateSignKeyPair()
 	default:
 		wireResponse = buildSodiumResponseError(errors.New("unknown request type"), sodium.Error_ERROR_UNKNOWN)
 	}
+
+	t2 := time.Now()
+
+	log.Printf("operation_name=%s, time=%.3f ms", operationName, t2.Sub(t1).Seconds()*1000)
 
 	return wireResponse
 }

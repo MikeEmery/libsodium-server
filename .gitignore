@@ -1,3 +1,6 @@
 libsodium.*
 libsodium-server
 .idea
+.DS_Store
+protobuf/*.py
+protobuf/*.go
