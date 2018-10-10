@@ -102,6 +102,10 @@ func readIncomingRequest(reader io.Reader, header []byte, bodyBuf []byte) (*sodi
 }
 
 func main() {
+	sodiumError := sodium.Init()
+	if sodiumError != nil {
+		logger.Fatalf("%v", sodiumError)
+	}
 	readFromStdIn()
 }
 
@@ -215,6 +219,10 @@ func handleRequest(request *sodium.Request) *sodium.Response {
 		operationName = proto.MessageName(op.SignKeyPairGenerateRequest)
 
 		wireResponse = generateSignKeyPair()
+	case *sodium.Request_HashGenericRequest:
+		operationName = proto.MessageName(op.HashGenericRequest)
+
+		wireResponse = hashGeneric(op.HashGenericRequest.Message)
 	default:
 		wireResponse = buildSodiumResponseError(errors.New("unknown request type"), sodium.Error_ERROR_UNKNOWN)
 	}
@@ -224,6 +232,20 @@ func handleRequest(request *sodium.Request) *sodium.Response {
 	log.Printf("operation_name=%s, time=%.3f ms", operationName, t2.Sub(t1).Seconds()*1000)
 
 	return wireResponse
+}
+
+func hashGeneric(bytes []byte) *sodium.Response {
+	signature, err := sign.HashGeneric(bytes)
+
+	if err != nil {
+		return buildSodiumResponseError(err, sodium.Error_ERROR_OPERATION_FAILED)
+	}
+
+	response := &sodium.HashGenericResponse{ Signature: signature }
+
+	return &sodium.Response{
+		SodiumResult: &sodium.Response_HashGenericResponse{ HashGenericResponse: response },
+	}
 }
 
 func signDetached(m []byte, author sign.SecretKey) *sodium.Response {

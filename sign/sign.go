@@ -15,6 +15,7 @@ type PublicKey []byte
 type SecretKey []byte
 type Digest []byte
 
+const genericHashSizeBytes = 32
 var preconditionError error = errors.New("precondition failed")
 
 type Error struct {
@@ -102,5 +103,22 @@ func Verify(m []byte, d Digest, pk PublicKey) (bool, error) {
 	result := C.crypto_sign_verify_detached(uchar(d), uchar(m), C.ulonglong(mlen), uchar(pk))
 
 	return result == 0, nil
+}
+
+func HashGeneric(message []byte) ([]byte, error) {
+	var err error = nil
+
+	buf := make([]byte, genericHashSizeBytes)
+	mlen := len(message)
+
+	result := C.crypto_generichash(uchar(buf), genericHashSizeBytes,
+		uchar(message), C.ulonglong(mlen),
+		(*C.uchar)(C.NULL), 0)
+
+	if result != 0 {
+		err = newError(result)
+	}
+
+	return buf, err
 }
 

@@ -7,8 +7,8 @@ format and exposes libsodium operations for sealed boxes and digital signatures.
 
 ## But... why?
 
-This was written as a prototype to deal with an environment where I couldn't statically nor dynamically link to
-libsodium, but I could spawn child processes.
+This was written as a solution to deal with an environment where I couldn't statically nor
+dynamically link to libsodium, but I could spawn child processes.
 
 ## Using it
 

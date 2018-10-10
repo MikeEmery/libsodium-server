@@ -87,6 +87,14 @@ message BoxSealOpenResponse {
   bytes plaintext = 1;
 }
 
+message HashGenericRequest {
+  bytes message = 1;
+}
+
+message HashGenericResponse {
+  bytes signature = 1;
+}
+
 message Request {
   oneof sodium_operation {
     SignKeyPairGenerateRequest signKeyPairGenerateRequest = 1;
@@ -97,6 +105,7 @@ message Request {
     BoxEasyOpenRequest boxEasyOpenRequest = 6;
     BoxSealRequest boxSealRequest = 7;
     BoxSealOpenRequest boxSealOpenRequest = 8;
+    HashGenericRequest hashGenericRequest = 9;
   }
 }
 
@@ -111,5 +120,6 @@ message Response {
     BoxEasyOpenResponse boxEasyOpenResponse = 7;
     BoxSealResponse boxSealResponse = 8;
     BoxSealOpenResponse boxSealOpenResponse = 9;
+    HashGenericResponse hashGenericResponse = 10;
   }
 }
